@@ -3,7 +3,7 @@ import { createContext, useContext, useState } from "react";
 const CityContext = createContext(); 
 
 export const CityProvider = ({children}) => {
-    const [city, setCity] = useState("Adana");
+    const [city, setCity] = useState("İstanbul");
     const values = {city,setCity};
 
     return <CityContext.Provider value={values}>

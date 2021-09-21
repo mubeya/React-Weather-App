@@ -1,27 +1,119 @@
 import { useState,useEffect } from "react";
 import { useCity } from "../context/CityContext";
+import SelectSearch from "react-select-search";
+import fuzzySearch from "../fuzzySearch";
 
 function Weather() {
-   const {city, setCity} = useCity();
-   const [cityWeather, setCityWeather] = useState({
-       current:{dt:"",temp:"",weather:[], humidity:""},
+const {city, setCity} = useCity();
+const [cityWeather, setCityWeather] = useState({
+       current:{dt:"",temp:"", weather:[], humidity:""},
        hourly:[],
        daily:[]
-   });
-   const [location, setLocation] = useState();
-   const APIKEY ="f579fda46a9c10ff1041d051f32f3d31";
+});
+
+const [location, setLocation] = useState();
+const APIKEY ="f579fda46a9c10ff1041d051f32f3d31";
+
+const options = [ {name: 'Adana', value: 'Adana'}, 
+                  {name: 'Adıyaman', value: 'Adıyaman'},
+                  {name: 'Afyonkarahisar', value: 'Afyonkarahisar'},
+                  {name: 'Ağrı', value: 'Ağrı'},
+                  {name: 'Aksaray', value: 'Aksaray'},
+                  {name: 'Amasya', value: 'Amasya'},
+                  {name: 'Ankara', value: 'Ankara'},
+                  {name: 'Antalya', value: 'Antalya'},
+                  {name: 'Ardahan', value: 'Ardahan'},
+                  {name: 'Artvin', value: 'Artvin'},
+                  {name: 'Aydın', value: 'Aydın'},
+                  {name: 'Balıkesir', value: 'Balıkesir'},
+                  {name: 'Bartın', value: 'Bartın'},
+                  {name: 'Batman', value: 'Batman'},
+                  {name: 'Bayburt', value: 'Bayburt'},
+                  {name: 'Bilecik', value: 'Bilecik'},
+                  {name: 'Bingöl', value: 'Bingöl'},
+                  {name: 'Bitlis', value: 'Bitlis'},
+                  {name: 'Bolu', value: 'Bolu'},
+                  {name: 'Burdur', value: 'Burdur'},
+                  {name: 'Bursa', value: 'Bursa'},
+                  {name: 'Çanakkale', value: 'Çanakkale'},
+                  {name: 'Çankırı', value: 'Çankırı'},
+                  {name: 'Çorum', value: 'Çorum'},
+                  {name: 'Denizli', value: 'Denizli'},
+                  {name: 'Diyarbakır', value: 'Diyarbakır'},
+                  {name: 'Düzce', value: 'Düzce'},
+                  {name: 'Edirne', value: 'Edirne'},
+                  {name: 'Elazığ', value: 'Elazığ'},
+                  {name: 'Erzincan', value: 'Erzincan'},
+                  {name: 'Erzurum', value: 'Erzurum'},
+                  {name: 'Eskişehir', value: 'Eskişehir'},
+                  {name: 'Gaziantep', value: 'Gaziantep'},
+                  {name: 'Giresun', value: 'Giresun'},
+                  {name: 'Gümüşhane', value: 'Gümüşhane'},
+                  {name: 'Hakkâri', value: 'Hakkâri'},
+                  {name: 'Hatay', value: 'Hatay'},
+                  {name: 'Iğdır', value: 'Iğdır'},
+                  {name: 'Isparta', value: 'Isparta'},
+                  {name: 'İstanbul', value: 'İstanbul'},
+                  {name: 'İzmir', value: 'İzmir'},
+                  {name: 'Kahramanmaraş', value: 'Kahramanmaraş'},
+                  {name: 'Karabük', value: 'Karabük'},
+                  {name: 'Karaman', value: 'Karaman'},
+                  {name: 'Kars', value: 'Kars'},
+                  {name: 'Kastamonu', value: 'Kastamonu'},
+                  {name: 'Kayseri', value: 'Kayseri'},
+                  {name: 'Kırıkkale', value: 'Kırıkkale'},
+                  {name: 'Kırklareli', value: 'Kırklareli'},
+                  {name: 'Kırşehir', value: 'Kırşehir'},
+                  {name: 'Kilis', value: 'Kilis'},
+                  {name: 'Kocaeli', value: 'Kocaeli'},
+                  {name: 'Konya', value: 'Konya'},
+                  {name: 'Kütahya', value: 'Kütahya'},
+                  {name: 'Malatya', value: 'Malatya'},
+                  {name: 'Manisa', value: 'Manisa'},
+                  {name: 'Mardin', value: 'Mardin'},
+                  {name: 'Mersin', value: 'Mersin'},
+                  {name: 'Muğla', value: 'Muğla'},
+                  {name: 'Muş', value: 'Muş'},
+                  {name: 'Nevşehir', value: 'Nevşehir'},
+                  {name: 'Niğde', value: 'Niğde'},
+                  {name: 'Ordu', value: 'Ordu'},
+                  {name: 'Osmaniye', value: 'Osmaniye'},
+                  {name: 'Rize', value: 'Rize'},
+                  {name: 'Sakarya', value: 'Sakarya'},
+                  {name: 'Samsun', value: 'Samsun'},
+                  {name: 'Siirt', value: 'Siirt'},
+                  {name: 'Sinop', value: 'Sinop'},
+                  {name: 'Sivas', value: 'Sivas'},
+                  {name: 'Şanlıurfa', value: 'Şanlıurfa'},
+                  {name: 'Şırnak', value: 'Şırnak'},
+                  {name: 'Tekirdağ', value: 'Tekirdağ'},
+                  {name: 'Tokat', value: 'Tokat'},
+                  {name: 'Trabzon', value: 'Trabzon'},
+                  {name: 'Tunceli', value: 'Tunceli'},
+                  {name: 'Uşak', value: 'Uşak'},
+                  {name: 'Van', value: 'Van'},
+                  {name: 'Yalova', value: 'Yalova'},
+                  {name: 'Yozgat', value: 'Yozgat'},
+                  {name: 'Zonguldak', value: 'Zonguldak'},
+                ];
 
 async function getLocation(){
     navigator.geolocation.getCurrentPosition(async function(position) {
+        const cityName = fetch(`http://api.openweathermap.org/geo/1.0/reverse?lat=${position.coords.latitude}&lon=${position.coords.longitude}&limit=1&appid=${APIKEY}`)
+                             .then(res => res.json())
+                             .then(res => setCity(res[0].name));
+
         return await fetch(`https://api.openweathermap.org/data/2.5/onecall?lat=${position.coords.latitude}&lon=${position.coords.longitude}&exclude=minutely&appid=${APIKEY}&units=metric&lang=tr`)
-                                .then(res => res.json())
-                                .then(res => setCityWeather({current:res.current, hourly:res.hourly,daily:res.daily}));  
+                             .then(res => res.json())
+                             .then(res => setCityWeather({current:res.current, hourly:res.hourly,daily:res.daily}));  
     }); 
     setLocation(location);
 }
   
 async function getWeatherData  () { 
-    const cityCoordinate = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&lang=tr&&appid=${APIKEY}&units=metric&lang=tr`).then(res => res.json())
+    const cityCoordinate = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&lang=tr&&appid=${APIKEY}&units=metric&lang=tr`)
+                                .then(res => res.json())
+
     return await fetch(`https://api.openweathermap.org/data/2.5/onecall?lat=${cityCoordinate.coord.lat}&lon=${cityCoordinate.coord.lon}&exclude=minutely&appid=${APIKEY}&units=metric&lang=tr`)
                                 .then(res => res.json())
                                 .then(res => setCityWeather({current:res.current, hourly:res.hourly,daily:res.daily}));         
@@ -70,7 +162,7 @@ function cityChange(e) {
 
 useEffect(() => {
     getLocation();
-}, [location])   //when "location permission" gets from user the function get called
+}, [location])   //when "location permission" gets from user this function get called
 
 useEffect(() => {
     getWeatherData();
@@ -78,114 +170,40 @@ useEffect(() => {
 
 
 return(
-    
     <div className="container">
         <h3>Hava durumunu öğrenmek için şehir aratın ↓</h3>
-        <select onChange={cityChange} className = "search" name="locality">
-                        <option value="Adana">Adana</option>
-                        <option value="Adıyaman">Adıyaman</option>
-                        <option value="Afyonkarahisar">Afyonkarahisar</option>
-                        <option value="Ağrı">Ağrı</option>
-                        <option value="Aksaray">Aksaray</option>
-                        <option value="Amasya">Amasya</option>
-                        <option value="Ankara">Ankara</option>
-                        <option value="Antalya">Antalya</option>
-                        <option value="Ardahan">Ardahan</option>
-                        <option value="Artvin">Artvin</option>
-                        <option value="Aydın">Aydın</option>
-                        <option value="Balıkesir">Balıkesir</option>
-                        <option value="Bartın">Bartın</option>
-                        <option value="Batman">Batman</option>
-                        <option value="Bayburt">Bayburt</option>
-                        <option value="Bilecik">Bilecik</option>
-                        <option value="Bingöl">Bingöl</option>
-                        <option value="Bitlis">Bitlis</option>
-                        <option value="Bolu">Bolu</option>
-                        <option value="Burdur">Burdur</option>
-                        <option value="Bursa">Bursa</option>
-                        <option value="Çanakkale">Çanakkale</option>
-                        <option value="Çankırı">Çankırı</option>
-                        <option value="Çorum">Çorum</option>
-                        <option value="Denizli">Denizli</option>
-                        <option value="Diyarbakır">Diyarbakır</option>
-                        <option value="Düzce">Düzce</option>
-                        <option value="Edirne">Edirne</option>
-                        <option value="Elazığ">Elazığ</option>
-                        <option value="Erzincan">Erzincan</option>
-                        <option value="Erzurum">Erzurum</option>
-                        <option value="Eskişehir">Eskişehir</option>
-                        <option value="Gaziantep">Gaziantep</option>
-                        <option value="Giresun">Giresun</option>
-                        <option value="Gümüşhane35">Gümüşhane</option>
-                        <option value="Hakkâri">Hakkâri</option>
-                        <option value="Hatay">Hatay</option>
-                        <option value="Iğdır">Iğdır</option>
-                        <option value="Isparta">Isparta</option>
-                        <option value="İstanbul">İstanbul</option>
-                        <option value="İzmir">İzmir</option>
-                        <option value="Kahramanmaraş">Kahramanmaraş</option>
-                        <option value="Karabük">Karabük</option>
-                        <option value="Karaman">Karaman</option>
-                        <option value="Kars">Kars</option>
-                        <option value="Kastamonu">Kastamonu</option>
-                        <option value="Kayseri">Kayseri</option>
-                        <option value="Kırıkkale">Kırıkkale</option>
-                        <option value="Kırklareli">Kırklareli</option>
-                        <option value="Kırşehir">Kırşehir</option>
-                        <option value="Kilis">Kilis</option>
-                        <option value="Kocaeli">Kocaeli</option>
-                        <option value="Konya">Konya</option>
-                        <option value="Kütahya">Kütahya</option>
-                        <option value="Malatya">Malatya</option>
-                        <option value="Manisa">Manisa</option>
-                        <option value="Mardin">Mardin</option>
-                        <option value="Mersin">Mersin</option>
-                        <option value="Muğla">Muğla</option>
-                        <option value="Muş">Muş</option>
-                        <option value="Nevşehir">Nevşehir</option>
-                        <option value="Niğde">Niğde</option>
-                        <option value="Ordu">Ordu</option>
-                        <option value="Osmaniye">Osmaniye</option>
-                        <option value="Rize">Rize</option>
-                        <option value="Sakarya">Sakarya</option>
-                        <option value="Samsun">Samsun</option>
-                        <option value="Siirt">Siirt</option>
-                        <option value="Sinop">Sinop</option>
-                        <option value="Sivas">Sivas</option>
-                        <option value="Şanlıurfa">Şanlıurfa</option>
-                        <option value="Şırnak">Şırnak</option>
-                        <option value="Tekirdağ">Tekirdağ</option>
-                        <option value="Tokat">Tokat</option>
-                        <option value="Trabzon">Trabzon</option>
-                        <option value="Tunceli">Tunceli</option>
-                        <option value="Uşak">Uşak</option>
-                        <option value="Van">Van</option>
-                        <option value="Yalova">Yalova</option>
-                        <option value="Yozgat">Yozgat</option>
-                        <option value="Zonguldak">Zonguldak</option>
-                    </select>
-       
+
+        <SelectSearch onChange={setCity} value={city} options={options} search filterOptions={fuzzySearch} placeholder={city} />
+          
         <div className="main">
             <div className="current">
-                <div className="current-weather">
-                    {getToday(cityWeather.current.dt)}
-                    <br />
-                    <span>{Math.floor(cityWeather.current.temp)}°</span>
-                    <br />
-                    {cityWeather.current.humidity}% Nem
+                <div className="current-day">
+                    {city}, {getToday(cityWeather.current.dt)}
                 </div>
-                {cityWeather.current.weather.slice(0,1).map((current,index) => {
+                <div className="current-weather">
+                    <div className="current-temp">
+                        <span style={{fontSize:80, fontWeight:"bold"}}>{Math.floor(cityWeather.current.temp)}°</span>
+                        <div>
+                            <span>Nem : {cityWeather.current.humidity} %</span>
+                            <br />
+                            <span>Rüzgar : {Math.floor(cityWeather.current.wind_speed) * 10} km/s</span>
+                        </div>
+                    </div>
+                    {cityWeather.current.weather.slice(0,1).map((current,index) => {  //object olduğu için bu şekilde map işlemi yapıyoruz
                     return(
-                        <div key={index}>
-                            <img src={`https://openweathermap.org/img/wn/${current.icon}@4x.png`} alt="" style={{width:150}}/>
+                        <div key={index} className="current-img">
+                            <img src={`https://openweathermap.org/img/wn/${current.icon}@4x.png`} alt="currentImage" style={{width:130}}/>
                             <p style={{marginTop:-30}}>{current.description.toUpperCase()} </p>
                         </div>
                     )
-                })} 
+                    })}
+                </div>
             </div>
 
-            <div className="hourly">
-                {cityWeather.hourly.slice(1,9).map((hourly,index) => {
+            <div className="hour">
+               <h4>Saatlik Hava Durumu</h4>
+               <div className="hourly">
+               {cityWeather.hourly.slice(1,9).map((hourly,index) => {
                     return (
                             <div key={index}>
                                {getHour(hourly.dt)}
@@ -201,17 +219,17 @@ return(
                            </div>
                     )
                 })}
+               </div>
             </div>    
             
             <div className="week">
-            {cityWeather.daily.slice(1,6).map((daily,index) => {  //First slice array cause listing will start from tomorrow here
-                return (
+                <h4>Haftalık Hava Durumu</h4>
+                <div className="weekly">
+                    {cityWeather.daily.slice(1,7).map((daily,index) => {  //First slice array cause listing will start from tomorrow here
+                    return (
                         <div key={index} className="week-day">
                             <p style={{fontWeight:"bold"}}>{getWeek(daily.dt)} </p>
-                            <span style={{fontWeight:"600", fontSize:18}}>{Math.floor(daily.temp.max)}°</span> / <span style={{color:"#484848", fontWeight:"600"}}>{Math.floor(daily.temp.min)}°</span> 
-                            <br />
-                            {daily.humidity}% Nem
-                            <br />
+                            <span style={{fontWeight:"600", fontSize:18}}>{Math.floor(daily.temp.max)}°</span> / <span style={{color:"rgb(208, 205, 205)", fontWeight:"600"}}>{Math.floor(daily.temp.min)}°</span> 
                             {daily.weather.map((day,index) => {
                                 return (
                                         <div key={index}>
@@ -223,9 +241,10 @@ return(
                                 )
                             })}
                         </div>
-                    )
-                })}
-        </div>
+                         )
+                    })}
+                </div>
+            </div>
         </div>
     </div>
     )
